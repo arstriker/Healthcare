@@ -22,8 +22,8 @@ from apps.drug_checker.models import SessionMemory, TokenLog
 
 # Per-query token cap (Requirement from Hackathon brief)
 PER_QUERY_TOKEN_CAP = 4000
-COST_PER_1K_PROMPT_TOKENS = 0.000075  # USD estimate for Gemini 2.5 Flash
-COST_PER_1K_COMPLETION_TOKENS = 0.00030  # USD estimate for Gemini 2.5 Flash
+COST_PER_1K_PROMPT_TOKENS = 0.000075  # USD estimate for Gemini Flash
+COST_PER_1K_COMPLETION_TOKENS = 0.00030  # USD estimate for Gemini Flash
 
 
 class DrugCheckerAgent:
@@ -33,6 +33,23 @@ class DrugCheckerAgent:
         self.client = None
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
+
+    def _generate_fallback_summary(self, prescribed_drugs: List[str], raw_interactions: List[Dict[str, Any]], citations: List[Citation], escalation_dict: Dict[str, Any]) -> str:
+        """Generates a clean, professional clinical synthesis when LLM API rate limits or errors occur."""
+        parts = []
+        if raw_interactions:
+            inter_summary = "; ".join([f"{i['drug_a']} + {i['drug_b']} ({i['severity'].upper()})" for i in raw_interactions])
+            parts.append(f"Identified {len(raw_interactions)} drug-drug interaction(s): {inter_summary}. Grounded in DDInter database.")
+        else:
+            parts.append("No direct drug-drug interactions recorded in the DDInter database for the prescribed items.")
+
+        if citations:
+            parts.append(f"Retrieved {len(citations)} relevant ICMR/WHO guideline section(s).")
+
+        if escalation_dict.get("is_escalated"):
+            parts.append("⚠️ CLINICAL REVIEW MANDATORY: High-risk symptom trigger or severe interaction detected.")
+
+        return " ".join(parts)
 
     def analyze_prescription(self, prescribed_drugs: List[str], patient_notes: str = "") -> PrescriptionAnalysisResponse:
         start_time = time.time()
@@ -74,7 +91,7 @@ class DrugCheckerAgent:
             reasons=escalation_dict["reasons"]
         )
 
-        # Step 4: Synthesize response via Gemini LLM (or deterministic fallback if API key missing)
+        # Step 4: Synthesize response via Gemini LLM with Model Fallback Strategy
         summary_text = ""
         prompt_tokens = 0
         completion_tokens = 0
@@ -102,36 +119,41 @@ RULES:
 3. If no relevant interactions or guidelines exist in the corpus, state clearly: "No additional interaction or guideline warnings found in the provided corpus."
 4. Provide a clear, professional summary for the pharmacist.
 """
-            try:
-                response = self.client.models.generate_content(
-                    model='gemini-flash-latest',
-                    contents=prompt_content,
-                    config=types.GenerateContentConfig(
-                        temperature=0.2,
-                        max_output_tokens=1000
+            # List of fallback models to try if quota/rate limits (429) occur
+            MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
+            success = False
+
+            for model_name in MODELS_TO_TRY:
+                try:
+                    response = self.client.models.generate_content(
+                        model=model_name,
+                        contents=prompt_content,
+                        config=types.GenerateContentConfig(
+                            temperature=0.2,
+                            max_output_tokens=1000
+                        )
                     )
-                )
-                summary_text = response.text
-                if hasattr(response, 'usage_metadata') and response.usage_metadata:
-                    prompt_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0)
-                    completion_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0)
-            except Exception as e:
-                summary_text = f"Agent synthesis generated via tool pipeline. (LLM call note: {str(e)})"
+                    summary_text = response.text
+                    if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                        prompt_tokens = getattr(response.usage_metadata, 'prompt_token_count', 0)
+                        completion_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0)
+                    success = True
+                    break
+                except Exception as e:
+                    # Rate limit or quota error, proceed to fallback model
+                    continue
+
+            if not success:
+                # Clean clinical fallback synthesis if all LLM models rate limit (429)
+                summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict)
         else:
             # Deterministic synthesis when GEMINI_API_KEY is not set
-            if raw_interactions:
-                inter_summary = "; ".join([f"{i['drug_a']}+{i['drug_b']} ({i['severity'].upper()})" for i in raw_interactions])
-                summary_text = f"Identified {len(raw_interactions)} drug-drug interaction(s): {inter_summary}. Grounded in DDInter database."
-            else:
-                summary_text = "No direct drug-drug interactions found in the DDInter database for the prescribed items."
-            
-            if citations:
-                summary_text += f" Relevant ICMR/WHO guidelines retrieved ({len(citations)} section citations)."
+            summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict)
 
         # Calculate SLA metrics & token costs
         elapsed_ms = (time.time() - start_time) * 1000
         total_tokens = prompt_tokens + completion_tokens
-        
+
         # Enforce Token Cap
         if total_tokens > PER_QUERY_TOKEN_CAP:
             summary_text += f" [WARNING: Token cap of {PER_QUERY_TOKEN_CAP} tokens exceeded! Current: {total_tokens}]"
