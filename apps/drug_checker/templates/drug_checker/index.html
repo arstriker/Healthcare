@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacist Drug Interaction & Guideline RAG Agent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .badge-contraindicated { background-color: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-major { background-color: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .badge-moderate { background-color: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+    .badge-minor { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen antialiased p-4 md:p-8">
+  <div class="max-w-5xl mx-auto bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl space-y-6">
+    
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-700 pb-5 gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="inline-block w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h1 class="text-2xl font-extrabold tracking-tight text-white">Healthcare Pharmacist RAG Agent</h1>
+        </div>
+        <p class="text-xs md:text-sm text-slate-400 mt-1">
+          Deterministic 320,000+ DDInter SQL Lookup • ICMR & WHO FAISS Vector Guidelines RAG
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-mono px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-300">
+          Gemini 3.8 Flash • Pydantic Validated
+        </span>
+      </div>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Sample Clinical Test Cases</label>
+        <span class="text-xs text-slate-500">Click preset to populate inputs</span>
+      </div>
+      
+      <div class="flex flex-wrap gap-2">
+        <button onclick="loadPreset('Warfarin, Aspirin', 'Patient in AFib reporting severe joint pain')" 
+          class="text-xs px-3 py-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-all font-medium">
+          🚨 Warfarin + Aspirin (Major Risk)
+        </button>
+        <button onclick="loadPreset('Sildenafil, Nitroglycerin', 'Patient experiencing acute chest pain')" 
+          class="text-xs px-3 py-1.5 rounded-lg border border-red-600/30 bg-red-600/10 text-red-300 hover:bg-red-600/20 transition-all font-medium">
+          ⛔ Sildenafil + Nitroglycerin (Contraindicated)
+        </button>
+        <button onclick="loadPreset('Ciprofloxacin, Tizanidine', 'UTI infection with muscle spasms')" 
+          class="text-xs px-3 py-1.5 rounded-lg border border-red-600/30 bg-red-600/10 text-red-300 hover:bg-red-600/20 transition-all font-medium">
+          ⛔ Ciprofloxacin + Tizanidine (CYP1A2 Contraindication)
+        </button>
+        <button onclick="loadPreset('Paracetamol, Amoxicillin', 'Fever 101F and acute bacterial sinusitis')" 
+          class="text-xs px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all font-medium">
+          ✅ Paracetamol + Amoxicillin (Safe)
+        </button>
+      </div>
+
+      <!-- Prescribed Drugs & Notes Input -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div class="md:col-span-2">
+          <label class="block text-xs font-medium text-slate-300 mb-1">Prescribed Drugs (comma separated)</label>
+          <input type="text" id="drugInput" value="Warfarin, Aspirin" 
+            placeholder="e.g. Warfarin, Aspirin, Metformin"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-white placeholder-slate-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Patient Symptoms / Notes</label>
+          <input type="text" id="notesInput" value="Patient in AFib reporting severe joint pain" 
+            placeholder="e.g. History of GI bleeding"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-white placeholder-slate-500" />
+        </div>
+      </div>
+
+      <button id="submitBtn" onclick="runLiveAnalysis()" 
+        class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl text-sm transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+        <span id="btnText">Analyze Prescription via Live RAG Agent</span>
+        <svg id="btnSpinner" class="w-4 h-4 hidden animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+      </button>
+    </div>
+
+    <!-- Live Results Display -->
+    <div id="resultsContainer" class="space-y-4 pt-2">
+      
+      <!-- Escalation Alert Banner -->
+      <div id="escalationBanner" class="hidden p-4 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">⚠️</span>
+          <div>
+            <h3 class="text-sm font-bold uppercase tracking-wider">Clinical Escalation Required</h3>
+            <ul id="escalationReasons" class="text-xs space-y-1 mt-1 text-red-300 list-disc list-inside"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Safe Banner -->
+      <div id="safeBanner" class="hidden p-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-400">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">✅</span>
+          <div>
+            <h3 class="text-sm font-bold">No High-Risk Red Flags Detected</h3>
+            <p class="text-xs text-emerald-300">Prescription checked against DDInter SQL database & ICMR guidelines.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid for Interactions & Citations -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Database Interactions Card -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <span>🗄️</span> DDInter SQL Interactions (320k+ DB)
+            </h3>
+            <span id="interactionCount" class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 border border-slate-700">0 found</span>
+          </div>
+          <div id="interactionsList" class="space-y-2 text-xs"></div>
+        </div>
+
+        <!-- RAG Guidelines Citations Card -->
+        <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <span>📚</span> ICMR / WHO RAG Guideline Citations
+            </h3>
+            <span id="citationCount" class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 border border-slate-700">0 retrieved</span>
+          </div>
+          <div id="citationsList" class="space-y-2 text-xs"></div>
+        </div>
+
+      </div>
+
+      <!-- Executive Summary -->
+      <div class="bg-slate-900 border border-slate-700 rounded-xl p-4 space-y-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Gemini Agent Synthesis Summary</h3>
+        <p id="summaryText" class="text-sm text-slate-200 leading-relaxed italic">Click "Analyze Prescription" to execute live backend pipeline...</p>
+      </div>
+
+      <!-- SLA & Token Metrics Footer -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-center text-xs">
+        <div class="p-3 rounded-xl border border-slate-700 bg-slate-900">
+          <span class="block text-slate-400 text-[11px]">Latency</span>
+          <span id="metricLatency" class="font-bold text-sm text-emerald-400">-- ms</span>
+        </div>
+        <div class="p-3 rounded-xl border border-slate-700 bg-slate-900">
+          <span class="block text-slate-400 text-[11px]">Token Usage</span>
+          <span id="metricTokens" class="font-bold text-sm text-slate-200">-- / 4000 cap</span>
+        </div>
+        <div class="p-3 rounded-xl border border-slate-700 bg-slate-900">
+          <span class="block text-slate-400 text-[11px]">Estimated Cost</span>
+          <span id="metricCost" class="font-bold text-sm text-sky-400">$0.000000</span>
+        </div>
+        <div class="p-3 rounded-xl border border-slate-700 bg-slate-900">
+          <span class="block text-slate-400 text-[11px]">Pydantic Schema</span>
+          <span class="font-bold text-sm text-emerald-400">100% Validated</span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    function loadPreset(drugs, notes) {
+      document.getElementById('drugInput').value = drugs;
+      document.getElementById('notesInput').value = notes;
+      runLiveAnalysis();
+    }
+
+    async function runLiveAnalysis() {
+      const drugsRaw = document.getElementById('drugInput').value;
+      const notes = document.getElementById('notesInput').value;
+
+      const drugsArray = drugsRaw.split(',').map(d => d.trim()).filter(Boolean);
+      if (drugsArray.length === 0) {
+        alert("Please enter at least one drug name.");
+        return;
+      }
+
+      // UI Loading state
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      btnText.innerText = "Querying Database & Running RAG...";
+      btnSpinner.classList.remove('hidden');
+
+      try {
+        const response = await fetch('/api/check-prescription/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prescribed_drugs: drugsArray,
+            patient_notes: notes,
+            session_id: "web_ui_session"
+          })
+        });
+
+        const data = await response.json();
+        renderAnalysis(data);
+      } catch (err) {
+        alert("Error connecting to live API: " + err.message);
+      } finally {
+        btnText.innerText = "Analyze Prescription via Live RAG Agent";
+        btnSpinner.classList.add('hidden');
+      }
+    }
+
+    function renderAnalysis(data) {
+      // Escalation Banner
+      const escBanner = document.getElementById('escalationBanner');
+      const safeBanner = document.getElementById('safeBanner');
+      const escList = document.getElementById('escalationReasons');
+
+      if (data.escalation && data.escalation.is_escalated) {
+        escBanner.classList.remove('hidden');
+        safeBanner.classList.add('hidden');
+        escList.innerHTML = data.escalation.reasons.map(r => `<li>${r}</li>`).join('');
+      } else {
+        escBanner.classList.add('hidden');
+        safeBanner.classList.remove('hidden');
+      }
+
+      // Interactions
+      const interList = document.getElementById('interactionsList');
+      document.getElementById('interactionCount').innerText = `${data.interactions.length} found`;
+
+      if (data.interactions.length === 0) {
+        interList.innerHTML = `<p class="text-slate-400 italic">No drug-drug interactions found in database.</p>`;
+      } else {
+        interList.innerHTML = data.interactions.map(item => {
+          let badgeClass = "badge-moderate";
+          const sev = (item.severity || "").toLowerCase();
+          if (sev === 'contraindicated') badgeClass = "badge-contraindicated";
+          if (sev === 'major') badgeClass = "badge-major";
+          if (sev === 'minor') badgeClass = "badge-minor";
+
+          return `
+            <div class="p-3 rounded-lg border border-slate-700 bg-slate-800 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-slate-100">${item.drug_a} + ${item.drug_b}</span>
+                <span class="text-[10px] font-semibold px-2 py-0.5 rounded uppercase ${badgeClass}">${item.severity}</span>
+              </div>
+              <p class="text-[11px] text-slate-300"><b>Mechanism:</b> ${item.mechanism}</p>
+              <p class="text-[11px] text-emerald-400"><b>Action:</b> ${item.recommendation}</p>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Citations
+      const citeList = document.getElementById('citationsList');
+      document.getElementById('citationCount').innerText = `${data.guideline_citations.length} retrieved`;
+
+      if (data.guideline_citations.length === 0) {
+        citeList.innerHTML = `<p class="text-slate-400 italic">No relevant guideline citations retrieved from FAISS corpus.</p>`;
+      } else {
+        citeList.innerHTML = data.guideline_citations.map(c => `
+          <div class="p-3 rounded-lg border border-slate-700 bg-slate-800 space-y-1">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-emerald-400 truncate">${c.source_doc}</span>
+              <span class="font-mono text-[10px] text-slate-400">Confidence: ${c.confidence}</span>
+            </div>
+            <p class="text-[10px] font-semibold text-slate-200">${c.section}</p>
+            <p class="text-[11px] text-slate-300 italic border-l-2 border-emerald-500 pl-2">"${c.excerpt}"</p>
+          </div>
+        `).join('');
+      }
+
+      // Summary
+      document.getElementById('summaryText').innerText = `"${data.summary}"`;
+
+      // SLA Metrics
+      if (data.token_stats) {
+        document.getElementById('metricLatency').innerText = `${data.token_stats.latency_ms} ms`;
+        document.getElementById('metricTokens').innerText = `${data.token_stats.total_tokens} / 4000 cap`;
+        document.getElementById('metricCost').innerText = `$${data.token_stats.estimated_cost_usd.toFixed(6)}`;
+      }
+    }
+
+    // Run initial demo query on load
+    runLiveAnalysis();
+  </script>
+</body>
+</html>

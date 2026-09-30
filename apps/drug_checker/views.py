@@ -1,3 +1,5 @@
+from django.shortcuts import render
+from django.views import View
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -5,6 +7,11 @@ from django.db.models import Avg, Sum
 
 from apps.drug_checker.agent import DrugCheckerAgent
 from apps.drug_checker.models import Drug, DrugInteraction, TokenLog
+
+
+class IndexView(View):
+    def get(self, request):
+        return render(request, 'drug_checker/index.html')
 
 
 class HealthCheckView(APIView):
