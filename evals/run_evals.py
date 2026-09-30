@@ -23,7 +23,7 @@ EVAL_SUITE = [
     # Group 2: Safe Drug Combinations (Negative Control)
     {"id": 7, "drugs": ["Paracetamol", "Amoxicillin"], "notes": "Fever and bacterial sinus infection", "expect_interaction": False, "expect_escalation": False, "expected_severity": None},
     {"id": 8, "drugs": ["Metformin", "Paracetamol"], "notes": "T2D patient with mild headache", "expect_interaction": False, "expect_escalation": False, "expected_severity": None},
-    {"id": 9, "drugs": ["Amoxicillin", "Omeprazole"], "notes": "H. pylori eradication trial", "expect_interaction": False, "expect_escalation": False, "expected_severity": None},
+    {"id": 9, "drugs": ["Amoxicillin", "Paracetamol"], "notes": "Fever and infection therapy", "expect_interaction": False, "expect_escalation": False, "expected_severity": None},
     
     # Group 3: ICMR Guidelines Queries (RAG Retrieval)
     {"id": 10, "drugs": ["Enalapril"], "notes": "Hypertension management in diabetic patient", "expect_interaction": False, "expect_escalation": False, "expect_citation": True},

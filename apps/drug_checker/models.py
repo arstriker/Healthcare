@@ -30,6 +30,11 @@ class DrugInteraction(models.Model):
 
     class Meta:
         unique_together = ('drug_a', 'drug_b')
+        indexes = [
+            models.Index(fields=['drug_a', 'drug_b']),
+            models.Index(fields=['drug_a']),
+            models.Index(fields=['drug_b']),
+        ]
 
     def __str__(self):
         return f"{self.drug_a} + {self.drug_b} ({self.severity})"

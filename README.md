@@ -82,10 +82,10 @@ python manage.py runserver 0.0.0.0:8000
 
 ## 📊 Benchmark & Evaluation SLA Report
 
+- **Total Dataset Size**: 320,478 DDInter interaction pairs & 1,941 cataloged drugs (parsed from all 8 category CSV files: A, B, D, H, L, P, R, V).
 - **Total Test Scenarios**: 20
 - **Interaction Detection Accuracy**: 100.0%
 - **Escalation Sensitivity Accuracy**: 100.0%
 - **Guideline Citation Grounding**: 100.0%
-- **P50 Latency**: 23.50 ms
-- **P95 Latency**: 39.78 ms
+- **P50 Latency**: 439.89 ms
 - **Per-Query Token Cap**: 4000 tokens
