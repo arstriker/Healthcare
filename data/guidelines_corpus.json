@@ -1,0 +1,32 @@
+[
+  {
+    "doc_id": "ICMR-STW-HYPERTENSION-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Essential Hypertension",
+    "section": "Section 3.2 - Pharmacotherapy in Hypertensive Diabetics",
+    "content": "In patients with diabetes mellitus and hypertension, ACE inhibitors (such as Enalapril) or ARBs (such as Telmisartan) are first-line agents due to renal protective effects. Beta-blockers should be used with caution as they can mask hypoglycemic symptoms (tachycardia, tremor). Calcium channel blockers (Amlodipine) can be combined if monotherapy is insufficient."
+  },
+  {
+    "doc_id": "ICMR-STW-ANTICOAGULATION-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Oral Anticoagulation Management",
+    "section": "Section 5.1 - Warfarin Monitoring and NSAID Interactions",
+    "content": "Target INR for non-valvular atrial fibrillation is 2.0 - 3.0. Concomitant use of NSAIDs (Ibuprofen, Naproxen, Diclofenac) or Aspirin significantly elevates upper GI bleeding risk. NSAIDs must be avoided; Paracetamol (up to 2g/day) is recommended for analgesia. INR must be re-checked 3 days after introducing any new systemic antibiotic or antifungal."
+  },
+  {
+    "doc_id": "ICMR-STW-DIABETES-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Type 2 Diabetes Mellitus",
+    "section": "Section 4.1 - Metformin Dosing & Renal Safety",
+    "content": "Metformin is the first-line pharmacotherapy for Type 2 Diabetes. Check eGFR prior to initiation. Metformin is contraindicated if eGFR < 30 mL/min/1.73m2. Dose reduction by 50% is required if eGFR is between 30 and 45 mL/min/1.73m2. Temporarily withhold Metformin 48 hours prior to iodinated radiocontrast imaging procedures to prevent lactic acidosis."
+  },
+  {
+    "doc_id": "WHO-GUIDELINE-CARDIO-2023",
+    "source_doc": "WHO Guidelines: Pharmacological Management of Cardiac Emergencies",
+    "section": "Section 8.4 - Nitrate and PDE5-Inhibitor Contraindications",
+    "content": "Sublingual or intravenous Nitroglycerin/Isosorbide mononitrate causes severe, irreversible vasodilatory hypotension if co-administered with PDE-5 inhibitors (Sildenafil, Tadalafil, Vardenafil). Administration of nitrates within 24 hours of Sildenafil or 48 hours of Tadalafil is strictly contraindicated in acute coronary syndrome."
+  },
+  {
+    "doc_id": "ICMR-STW-RESPIRATORY-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Acute Bronchial Asthma",
+    "section": "Section 2.3 - Red Flag Symptoms & Emergency Escalation",
+    "content": "Red flag symptoms requiring immediate intensive care / emergency escalation include: Silent chest on auscultation, inability to complete full sentences in one breath, cyanosis, altered mental state, respiratory rate > 30/min, or PEFR < 33% predicted. Immediate administration of high-flow oxygen, inhaled SABA (Salbutamol) via nebulizer, and IV hydrocortisone is mandatory."
+  }
+]
