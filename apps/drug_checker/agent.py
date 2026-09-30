@@ -58,7 +58,7 @@ class DrugCheckerAgent:
         raw_interactions = mysql_drug_interaction_tool(prescribed_drugs)
 
         # Step 2: Run Guideline RAG Retrieval Tool
-        rag_query = f"Interactions, dosing, and safety precautions for {' '.join(prescribed_drugs)}. Notes: {patient_notes}"
+        rag_query = f"{', '.join(prescribed_drugs)} {patient_notes}".strip()
         retrieved_chunks = guideline_retrieval_tool(query=rag_query)
 
         # Step 3: Run Safety Escalation Tool

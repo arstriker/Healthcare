@@ -28,5 +28,65 @@
     "source_doc": "ICMR Standard Treatment Workflows: Acute Bronchial Asthma",
     "section": "Section 2.3 - Red Flag Symptoms & Emergency Escalation",
     "content": "Red flag symptoms requiring immediate intensive care / emergency escalation include: Silent chest on auscultation, inability to complete full sentences in one breath, cyanosis, altered mental state, respiratory rate > 30/min, or PEFR < 33% predicted. Immediate administration of high-flow oxygen, inhaled SABA (Salbutamol) via nebulizer, and IV hydrocortisone is mandatory."
+  },
+  {
+    "doc_id": "ICMR-STW-ANTIMICROBIAL-2022",
+    "source_doc": "ICMR Guidelines: Antimicrobial Stewardship & Quinolone Safety",
+    "section": "Section 6.2 - Quinolone Drug Interactions & QT Prolongation",
+    "content": "Fluoroquinolones (Ciprofloxacin, Levofloxacin, Moxifloxacin) inhibit CYP1A2 and cause QT interval prolongation. Concomitant use with Tizanidine is strictly contraindicated due to severe hypotension and CNS depression. Co-administration with Amiodarone or Sotalol increases risk of Torsades de Pointes arrhythmia."
+  },
+  {
+    "doc_id": "ICMR-STW-GASTRO-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Peptic Ulcer Disease & PPI Interactions",
+    "section": "Section 3.1 - Proton Pump Inhibitors & Clopidogrel Efficacy",
+    "content": "Omeprazole and Esomeprazole competitively inhibit CYP2C19, decreasing the conversion of Clopidogrel to its active antiplatelet metabolite. Pantoprazole or Rabeprazole exhibit lower CYP2C19 affinity and are preferred acid suppressants for cardiac patients on Clopidogrel therapy."
+  },
+  {
+    "doc_id": "ICMR-STW-EPILEPSY-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Epilepsy and Anticonvulsants",
+    "section": "Section 4.3 - Phenytoin & Valproate Dosing Precautions",
+    "content": "Phenytoin exhibits non-linear zero-order therapeutic pharmacokinetics. Hepatic enzyme inducers (Carbamazepine, Rifampicin) lower serum Phenytoin levels. Sodium Valproate displaces Phenytoin from plasma protein binding sites while inhibiting its metabolism, leading to acute phenytoin toxicity (nystagmus, ataxia)."
+  },
+  {
+    "doc_id": "ICMR-STW-TUBERCULOSIS-2023",
+    "source_doc": "ICMR National TB Elimination Program: Anti-TB Drug Safety",
+    "section": "Section 7.1 - Rifampicin Enzyme Induction & Oral Contraceptives",
+    "content": "Rifampicin is a potent inducer of hepatic CYP3A4 and P-glycoprotein. It dramatically accelerates the metabolism of oral contraceptives, Warfarin, HIV protease inhibitors, and Oral Antidiabetics (Glimepiride). Alternative non-hormonal contraception and serial INR/blood glucose monitoring are mandatory during TB treatment."
+  },
+  {
+    "doc_id": "ICMR-STW-HEPATOLOGY-2022",
+    "source_doc": "ICMR Guidelines: Drug-Induced Liver Injury (DILI)",
+    "section": "Section 2.1 - Paracetamol Overdose & Hepatotoxicity Thresholds",
+    "content": "Maximum daily dose of Paracetamol in adults is 4.0 grams/day (reduced to 2.0g/day in chronic alcoholism or underlying liver cirrhosis). Overdose leads to NAPQI metabolite accumulation causing centrilobular hepatic necrosis. Early administration of IV N-Acetylcysteine (NAC) within 8 hours prevents irreversible hepatic failure."
+  },
+  {
+    "doc_id": "WHO-GUIDELINE-PEDIATRIC-2023",
+    "source_doc": "WHO Pocket Book of Hospital Care for Children: Fever Management",
+    "section": "Section 4.2 - Pediatric Fever & Aspirin Reye Syndrome Warning",
+    "content": "Aspirin is strictly contraindicated in infants and children under 16 years of age presenting with viral infections (influenza, varicella/chickenpox) due to the fatal risk of Reye's Syndrome (acute encephalopathy and fatty liver failure). Paracetamol (10-15 mg/kg per dose) is the safe antipyretic of choice."
+  },
+  {
+    "doc_id": "ICMR-STW-RENAL-2022",
+    "source_doc": "ICMR Guidelines: Dosing Guidelines in Chronic Kidney Disease (CKD)",
+    "section": "Section 5.4 - NSAID Induced Acute Kidney Injury",
+    "content": "NSAIDs (Ibuprofen, Diclofenac, Naproxen, Ketorolac) inhibit renal prostaglandin synthesis, causing afferent arteriolar constriction and acute renal hypoperfusion. NSAIDs are contraindicated in patients with eGFR < 30 mL/min, volume depletion, severe heart failure, or co-prescribed ACE-I + Diuretics (Triple Whammy risk)."
+  },
+  {
+    "doc_id": "ICMR-STW-PSYCHIATRY-2022",
+    "source_doc": "ICMR Standard Treatment Workflows: Major Depressive Disorder",
+    "section": "Section 3.5 - Serotonin Syndrome Warning with SSRIs and MAOIs",
+    "content": "Concomitant administration of SSRIs (Fluoxetine, Sertraline) or SNRIs with MAO inhibitors (Selegiline, Linezolid antibiotic) triggers Serotonin Syndrome characterized by hyperthermia, neuromuscular agitation, rigidity, and autonomic instability. A 14-day wash-out period is mandatory when switching agents."
+  },
+  {
+    "doc_id": "ICMR-STW-THYROID-2022",
+    "source_doc": "ICMR Guidelines: Hypothyroidism Management",
+    "section": "Section 2.2 - Levothyroxine Absorption Interactions",
+    "content": "Levothyroxine (T4) must be taken on an empty stomach 30-60 minutes before breakfast. Calcium carbonate, Iron supplements (Ferrous Sulfate), Aluminum hydroxide antacids, and Sucralfate bind to Levothyroxine in the GI tract, reducing thyroid hormone absorption by over 50%. Separate dosing by at least 4 hours."
+  },
+  {
+    "doc_id": "ICMR-STW-ONCOLOGY-2022",
+    "source_doc": "ICMR Guidelines: Systemic Cancer Chemotherapy Safety",
+    "section": "Section 9.1 - Methotrexate & NSAID Toxicity Interaction",
+    "content": "NSAIDs and Penicillins diminish renal tubular secretion of Methotrexate, resulting in elevated serum methotrexate levels, profound bone marrow suppression, severe mucositis, and acute renal tubular necrosis. Concomitant high-dose NSAID therapy with Methotrexate is strictly contraindicated."
   }
 ]

@@ -81,7 +81,7 @@ def guideline_retrieval_tool(query: str) -> List[Dict[str, Any]]:
     """
     RAG Search tool querying FAISS vector store for ICMR/WHO clinical treatment guidelines.
     """
-    return retriever_instance.retrieve(query=query, top_k=3, score_threshold=0.30)
+    return retriever_instance.retrieve(query=query, top_k=3, score_threshold=0.40)
 
 
 def red_flag_escalation_tool(symptoms_or_notes: str, interactions: List[Dict[str, Any]]) -> Dict[str, Any]:
