@@ -132,7 +132,7 @@ RULES:
 3. If no relevant interactions or guidelines exist, state clearly that no warnings were found. If 'DID YOU MEAN SUGGESTIONS' exist, suggest them to the user.
 4. Provide a clear, professional summary for the pharmacist.
 """
-            MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
+            MODELS_TO_TRY = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-flash-latest']
             success = False
 
             for model_name in MODELS_TO_TRY:
@@ -156,8 +156,12 @@ RULES:
 
             if not success:
                 summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict, did_you_mean_list)
+                prompt_tokens = int(len(prompt_content.split()) * 1.33)
+                completion_tokens = int(len(summary_text.split()) * 1.33)
         else:
             summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict, did_you_mean_list)
+            prompt_tokens = int((len(prescribed_drugs) * 15 + len(patient_notes)) * 1.33)
+            completion_tokens = int(len(summary_text.split()) * 1.33)
 
         elapsed_ms = (time.time() - start_time) * 1000
         total_tokens = prompt_tokens + completion_tokens
