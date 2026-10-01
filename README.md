@@ -35,11 +35,15 @@ flowchart TD
 
 ## 🌟 Key Features
 
-1. **Deterministic Drug Interaction Engine**: Query NLEM 2022 essential medicines and DDInter interaction pairs directly via database queries without relying on LLM memory.
-2. **Medical Guideline RAG**: FAISS index with `all-MiniLM-L6-v2` embeddings over ICMR Standard Treatment Workflows & WHO guidelines, returning exact section citations.
-3. **Safety & Red-Flag Escalation**: Automatic detection of critical symptoms (cyanosis, silent chest, hemorrhage, severe hypotension) and contraindicated drug pairs (e.g. Sildenafil + Nitroglycerin, Ciprofloxacin + Tizanidine).
-4. **Pydantic Output Validation**: Enforces strict JSON contracts for summary, interactions, citations, escalation alerts, and token SLA stats.
-5. **Token Usage & SLA Tracking**: Logs prompt/completion tokens, latency (P50/P95), and per-query cost with token cap enforcement (4000 tokens limit).
+1. **Deterministic Drug Interaction Engine**: Query NLEM 2022 essential medicines and DDInter interaction pairs (320,478 records) directly via indexed database queries.
+2. **Hybrid RAG Retriever (BM25 + FAISS + Cross-Encoder Reranker)**:
+   - **BM25 Inverted Index**: Exact keyword search over medical terms and drug names.
+   - **FAISS Dense Vector Store**: Semantic similarity search using `all-MiniLM-L6-v2`.
+   - **Reciprocal Rank Fusion (RRF)**: Fuses keyword and vector ranks.
+   - **Cross-Encoder Re-ranker**: Re-scores top candidates using `ms-marco-MiniLM-L-6-v2` for maximum precision.
+3. **Explicit Tool Status & Fuzzy "Did You Mean X?" Suggestions**: Automatic fuzzy matching against 1,941 cataloged drug names when typos occur (e.g. `WarfarinX` -> `Did you mean: Warfarin?`).
+4. **Safety & Red-Flag Escalation**: Automatic detection of critical symptoms (cyanosis, silent chest, hemorrhage, severe hypotension) and contraindicated drug pairs.
+5. **Pydantic Output Validation**: Enforces strict JSON contracts for summary, interactions, citations, escalation alerts, and token SLA stats.
 
 ---
 

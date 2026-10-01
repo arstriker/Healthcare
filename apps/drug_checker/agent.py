@@ -20,10 +20,9 @@ from apps.drug_checker.schemas import (
 from apps.drug_checker.models import SessionMemory, TokenLog
 
 
-# Per-query token cap (Requirement from Hackathon brief)
 PER_QUERY_TOKEN_CAP = 4000
-COST_PER_1K_PROMPT_TOKENS = 0.000075  # USD estimate for Gemini Flash
-COST_PER_1K_COMPLETION_TOKENS = 0.00030  # USD estimate for Gemini Flash
+COST_PER_1K_PROMPT_TOKENS = 0.000075
+COST_PER_1K_COMPLETION_TOKENS = 0.00030
 
 
 class DrugCheckerAgent:
@@ -34,17 +33,25 @@ class DrugCheckerAgent:
         if self.api_key:
             self.client = genai.Client(api_key=self.api_key)
 
-    def _generate_fallback_summary(self, prescribed_drugs: List[str], raw_interactions: List[Dict[str, Any]], citations: List[Citation], escalation_dict: Dict[str, Any]) -> str:
-        """Generates a clean, professional clinical synthesis when LLM API rate limits or errors occur."""
+    def _generate_fallback_summary(
+        self,
+        prescribed_drugs: List[str],
+        raw_interactions: List[Dict[str, Any]],
+        citations: List[Citation],
+        escalation_dict: Dict[str, Any],
+        did_you_mean: List[str]
+    ) -> str:
         parts = []
         if raw_interactions:
             inter_summary = "; ".join([f"{i['drug_a']} + {i['drug_b']} ({i['severity'].upper()})" for i in raw_interactions])
             parts.append(f"Identified {len(raw_interactions)} drug-drug interaction(s): {inter_summary}. Grounded in DDInter database.")
         else:
             parts.append("No direct drug-drug interactions recorded in the DDInter database for the prescribed items.")
+            if did_you_mean:
+                parts.append(f"Did you mean: {', '.join(did_you_mean)}?")
 
         if citations:
-            parts.append(f"Retrieved {len(citations)} relevant ICMR/WHO guideline section(s).")
+            parts.append(f"Retrieved {len(citations)} relevant ICMR/WHO guideline section(s) via Hybrid RAG.")
 
         if escalation_dict.get("is_escalated"):
             parts.append("⚠️ CLINICAL REVIEW MANDATORY: High-risk symptom trigger or severe interaction detected.")
@@ -54,17 +61,20 @@ class DrugCheckerAgent:
     def analyze_prescription(self, prescribed_drugs: List[str], patient_notes: str = "") -> PrescriptionAnalysisResponse:
         start_time = time.time()
 
-        # Step 1: Run Deterministic SQL Interaction Lookup Tool
-        raw_interactions = mysql_drug_interaction_tool(prescribed_drugs)
+        # Step 1: Run Deterministic SQL Interaction Lookup Tool (returns status & fuzzy suggestions)
+        sql_payload = mysql_drug_interaction_tool(prescribed_drugs)
+        raw_interactions = sql_payload.get("interactions", [])
+        did_you_mean_list = sql_payload.get("did_you_mean", [])
+        tool_status = sql_payload.get("status", "FOUND")
 
-        # Step 2: Run Guideline RAG Retrieval Tool
+        # Step 2: Run Guideline RAG Retrieval Tool (BM25 + FAISS + CrossEncoder Reranker)
         rag_query = f"{', '.join(prescribed_drugs)} {patient_notes}".strip()
-        retrieved_chunks = guideline_retrieval_tool(query=rag_query)
+        rag_payload = guideline_retrieval_tool(query=rag_query)
+        retrieved_chunks = rag_payload.get("citations", [])
 
         # Step 3: Run Safety Escalation Tool
         escalation_dict = red_flag_escalation_tool(symptoms_or_notes=patient_notes, interactions=raw_interactions)
 
-        # Build structured object items
         interaction_details = [
             DrugInteractionDetail(
                 drug_a=item["drug_a"],
@@ -81,7 +91,8 @@ class DrugCheckerAgent:
                 source_doc=chunk["source_doc"],
                 section=chunk["section"],
                 excerpt=chunk["content"],
-                confidence=chunk["confidence"]
+                confidence=chunk["confidence"],
+                search_mode=chunk.get("search_mode", "hybrid_bm25_faiss_reranked")
             )
             for chunk in retrieved_chunks
         ]
@@ -91,7 +102,6 @@ class DrugCheckerAgent:
             reasons=escalation_dict["reasons"]
         )
 
-        # Step 4: Synthesize response via Gemini LLM with Model Fallback Strategy
         summary_text = ""
         prompt_tokens = 0
         completion_tokens = 0
@@ -104,10 +114,13 @@ Analyze the following prescription data grounded STRICTLY on the retrieved tools
 PRESCRIBED DRUGS: {', '.join(prescribed_drugs)}
 PATIENT NOTES / SYMPTOMS: {patient_notes}
 
+DETERMINISTIC DATABASE INTERACTIONS TOOL STATUS: {tool_status}
+DID YOU MEAN SUGGESTIONS: {json.dumps(did_you_mean_list)}
+
 DETERMINISTIC DATABASE INTERACTIONS:
 {json.dumps(raw_interactions, indent=2)}
 
-RETRIEVED CLINICAL GUIDELINES:
+RETRIEVED CLINICAL GUIDELINES (HYBRID BM25 + FAISS RERANKED):
 {json.dumps(retrieved_chunks, indent=2)}
 
 ESCALATION TRIGGER:
@@ -116,10 +129,9 @@ ESCALATION TRIGGER:
 RULES:
 1. Do NOT make up medical diagnosis or dosing advice to patients.
 2. Ground all claims on the retrieved database records and guidelines.
-3. If no relevant interactions or guidelines exist in the corpus, state clearly: "No additional interaction or guideline warnings found in the provided corpus."
+3. If no relevant interactions or guidelines exist, state clearly that no warnings were found. If 'DID YOU MEAN SUGGESTIONS' exist, suggest them to the user.
 4. Provide a clear, professional summary for the pharmacist.
 """
-            # List of fallback models to try if quota/rate limits (429) occur
             MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest']
             success = False
 
@@ -139,22 +151,17 @@ RULES:
                         completion_tokens = getattr(response.usage_metadata, 'candidates_token_count', 0)
                     success = True
                     break
-                except Exception as e:
-                    # Rate limit or quota error, proceed to fallback model
+                except Exception:
                     continue
 
             if not success:
-                # Clean clinical fallback synthesis if all LLM models rate limit (429)
-                summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict)
+                summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict, did_you_mean_list)
         else:
-            # Deterministic synthesis when GEMINI_API_KEY is not set
-            summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict)
+            summary_text = self._generate_fallback_summary(prescribed_drugs, raw_interactions, citations, escalation_dict, did_you_mean_list)
 
-        # Calculate SLA metrics & token costs
         elapsed_ms = (time.time() - start_time) * 1000
         total_tokens = prompt_tokens + completion_tokens
 
-        # Enforce Token Cap
         if total_tokens > PER_QUERY_TOKEN_CAP:
             summary_text += f" [WARNING: Token cap of {PER_QUERY_TOKEN_CAP} tokens exceeded! Current: {total_tokens}]"
 
@@ -175,12 +182,13 @@ RULES:
             summary=summary_text,
             prescribed_drugs=prescribed_drugs,
             interactions=interaction_details,
+            did_you_mean=did_you_mean_list,
+            tool_status=tool_status,
             guideline_citations=citations,
             escalation=escalation_obj,
             token_stats=token_stats
         )
 
-        # Log session and token stats to database
         try:
             SessionMemory.objects.create(
                 session_id=self.session_id,

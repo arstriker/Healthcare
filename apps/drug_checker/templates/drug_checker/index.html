@@ -57,6 +57,10 @@
           class="text-xs px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 transition-all font-medium">
           ✅ Paracetamol + Amoxicillin (Safe)
         </button>
+        <button onclick="loadPreset('WarfarinX, Aspirin', 'Testing typo detection')" 
+          class="text-xs px-3 py-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 transition-all font-medium">
+          💡 WarfarinX (Did You Mean Suggestion Test)
+        </button>
       </div>
 
       <!-- Prescribed Drugs & Notes Input -->
@@ -228,7 +232,13 @@
       document.getElementById('interactionCount').innerText = `${data.interactions.length} found`;
 
       if (data.interactions.length === 0) {
-        interList.innerHTML = `<p class="text-slate-400 italic">No drug-drug interactions found in database.</p>`;
+        let emptyHtml = `<p class="text-slate-400 italic">No drug-drug interactions found in database.</p>`;
+        if (data.did_you_mean && data.did_you_mean.length > 0) {
+          emptyHtml += `<div class="mt-2 p-2.5 rounded-lg bg-sky-950/60 border border-sky-800 text-sky-300 text-xs">
+            💡 <b>Did you mean:</b> ${data.did_you_mean.map(s => `<button onclick="loadPreset('${s}', '')" class="underline font-bold hover:text-sky-100 px-1">${s}</button>`).join(', ')}?
+          </div>`;
+        }
+        interList.innerHTML = emptyHtml;
       } else {
         interList.innerHTML = data.interactions.map(item => {
           let badgeClass = "badge-moderate";

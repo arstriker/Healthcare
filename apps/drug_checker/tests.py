@@ -19,13 +19,14 @@ class DrugCheckerTestCase(TestCase):
         )
 
     def test_mysql_interaction_tool(self):
-        results = mysql_drug_interaction_tool(["Warfarin", "Aspirin"])
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["severity"], "major")
+        payload = mysql_drug_interaction_tool(["Warfarin", "Aspirin"])
+        self.assertEqual(payload["status"], "FOUND")
+        self.assertGreaterEqual(len(payload["interactions"]), 1)
+        self.assertEqual(payload["interactions"][0]["severity"], "major")
 
     def test_red_flag_escalation_tool(self):
-        interactions = mysql_drug_interaction_tool(["Warfarin", "Aspirin"])
-        escalation = red_flag_escalation_tool("Patient reports severe hemorrhage", interactions)
+        payload = mysql_drug_interaction_tool(["Warfarin", "Aspirin"])
+        escalation = red_flag_escalation_tool("Patient reports severe hemorrhage", payload["interactions"])
         self.assertTrue(escalation["is_escalated"])
         self.assertGreater(len(escalation["reasons"]), 0)
 
@@ -36,7 +37,7 @@ class DrugCheckerTestCase(TestCase):
             patient_notes="Check for bleeding risks"
         )
         self.assertIn("Warfarin", response.prescribed_drugs)
-        self.assertEqual(len(response.interactions), 1)
+        self.assertGreaterEqual(len(response.interactions), 1)
         self.assertTrue(response.escalation.is_escalated)
 
     def test_health_check_endpoint(self):

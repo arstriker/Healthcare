@@ -7,6 +7,7 @@ class Citation(BaseModel):
     section: str = Field(..., description="Section title or number")
     excerpt: str = Field(..., description="Relevant text quote from guideline")
     confidence: float = Field(..., description="Similarity confidence score")
+    search_mode: Optional[str] = Field(None, description="Search & reranking method used")
 
 
 class DrugInteractionDetail(BaseModel):
@@ -34,6 +35,8 @@ class PrescriptionAnalysisResponse(BaseModel):
     summary: str = Field(..., description="Executive summary for pharmacist/health worker")
     prescribed_drugs: List[str] = Field(default_factory=list, description="Identified drugs from prescription")
     interactions: List[DrugInteractionDetail] = Field(default_factory=list, description="Detected drug-drug interactions from database")
+    did_you_mean: List[str] = Field(default_factory=list, description="Fuzzy drug suggestions if queried items were not found or misspelled")
+    tool_status: str = Field("FOUND", description="Status string: FOUND, NOT_FOUND, or NO_RELEVANT_GUIDELINES")
     guideline_citations: List[Citation] = Field(default_factory=list, description="ICMR/WHO guideline citations grounding the response")
     escalation: EscalationAlert = Field(..., description="Escalation status and human review triggers")
     token_stats: TokenStats = Field(default_factory=TokenStats, description="Token usage & SLA metrics")
